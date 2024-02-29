@@ -134,7 +134,7 @@ const App = () => {
       </nav >
       <div className='main-panel'>
         <div className="row">
-          <div className="col">
+          <div className="col-sm-6 col-xl-4 mb-4">
             <div className="card text-bg-light">
               <div className="card-header">① 选择表图像</div>
               <div className="card-body">
@@ -148,7 +148,7 @@ const App = () => {
               </div>
             </div>
           </div>
-          <div className="col">
+          <div className="col-sm-6 col-xl-4 mb-4">
             <div className="card text-bg-light">
               <div className="card-header">② 选择里图像</div>
               <div className="card-body">
@@ -162,7 +162,7 @@ const App = () => {
               </div>
             </div>
           </div>
-          <div className="col">
+          <div className="col-12 col-xl-4 mb-4">
             <div className="card text-bg-light">
               <div className="card-header">③ 预览</div>
               <div className="card-body">
