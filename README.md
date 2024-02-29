@@ -1,70 +1,32 @@
-# Getting Started with Create React App
+# image-blender
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+制作点击后会变化的图片
 
-## Available Scripts
+#### 界面预览
 
-In the project directory, you can run:
+![](https://assets.zouht.com/img/md/image-blender-README-01.jpg)
 
-### `npm start`
+#### 成品预览
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+<img src="https://assets.zouht.com/img/md/image-blender-README-02.gif" style="zoom:50%;" />
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+#### 原理
 
-### `npm test`
+不妨设表图片 $A$ 与里图片 $B$ 尺寸相同，长宽分别为 $a,b$，首先需要将 $A,B$ 转换为灰度图 $A',B'$ ，接下来按照以下公式混合得到结果：
+$$
+C_{i,j}=
+\begin{cases}
+(0,0,0,255-A_{i,j}'),\;\text{if}\;(i+j)\bmod2=0\\
+(255,255,255,B_{i,j}'),\;\text{other}
+\end{cases}
+$$
+注意，结果 $C$ 是一个四通道 $RGBA$ 的图片，其中透明度通道 $A$ 至关重要，因此一定要保证图片为 `png` 格式。
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+通过上面的构造方式构造得到图片 $C$，在白色背景时，白色通道会溢出导致只能看到表图片（即里图片溢出）；在黑色背景时，黑色通道会溢出导致只能看到里图片（即表图片溢出）。
 
-### `npm run build`
+由于许多程序设计时，预览图片使用白色背景，点击进入大图界面使用黑色背景，如此实现了图片的切换。
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+#### 使用技术
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+使用 react 框架，bootstrap 组件库，image-js 图片库。
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
