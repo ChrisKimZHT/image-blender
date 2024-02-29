@@ -1,3 +1,8 @@
+a {
+  color: #000 !important;
+  text-decoration: solid underline #aaa !important;
+}
+
 .navbar {
   background-color: #E9ECEF;
 }
