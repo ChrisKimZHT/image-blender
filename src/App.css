@@ -1,3 +1,20 @@
 .navbar {
-  background-color: #fff;
+  background-color: #E9ECEF;
+}
+
+.main-panel {
+  margin: 30px;
+  min-height: 85vh;
+}
+
+.image-container {
+  margin-bottom: 10px;
+  border: 1px solid #aaa;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.image-preview {
+  width: 100%;
+  height: auto;
 }
