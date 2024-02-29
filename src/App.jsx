@@ -147,7 +147,7 @@ const App = () => {
         <div className="row">
           <div className="col-sm-6 col-xl-4 mb-4">
             <div className="card text-bg-light">
-              <div className="card-header">① 选择表图像</div>
+              <div className="card-header">① 选择表图像（白底时可见）</div>
               <div className="card-body">
                 <div className='image-container'>
                   <img src={outerThumb} alt="outer" className='image-preview' />
@@ -161,7 +161,7 @@ const App = () => {
           </div>
           <div className="col-sm-6 col-xl-4 mb-4">
             <div className="card text-bg-light">
-              <div className="card-header">② 选择里图像</div>
+              <div className="card-header">② 选择里图像（黑底时可见）</div>
               <div className="card-body">
                 <div className='image-container'>
                   <img src={innerThumb} alt="inner" className='image-preview' />
@@ -175,14 +175,14 @@ const App = () => {
           </div>
           <div className="col-12 col-xl-4 mb-4">
             <div className="card text-bg-light">
-              <div className="card-header">③ 预览（仅供参考，结果以下载为准）</div>
+              <div className="card-header">③ 预览（预览有压缩，仅供参考）</div>
               <div className="card-body">
                 <div className='image-container'>
                   <img src={resultThumb} alt="inner" className={`image-preview ${bgColor ? 'bg-black' : 'bg-white'}`} />
                 </div>
                 <div className="form-check form-switch float-start">
                   <input className="form-check-input" type="checkbox" role="switch" id="bg-color" value={bgColor} onChange={(e) => setBgColor(e.target.checked)} />
-                  <label className="form-check-label" for="bg-color">白 / 黑</label>
+                  <label className="form-check-label" for="bg-color">白底 / 黑底</label>
                 </div>
                 <button type="button" className="btn btn-primary float-end" onClick={async () => downloadBlob(await resultImage.toBlob())}>
                   <i className="bi bi-cloud-download"></i> 下载
