@@ -13,6 +13,8 @@ const App = () => {
   const [toastTitle, setToastTitle] = useState('');
   const [toastMessage, setToastMessage] = useState('');
 
+  const [bgColor, setBgColor] = useState(false);
+
   const handleOuterImageUpload = () => {
     const fileInput = document.getElementById('outerImageInput');
     fileInput.click();
@@ -97,18 +99,6 @@ const App = () => {
     }
 
     // 正式处理
-    // let outerMask = new Image(width, height);
-    // for (let i = 0; i < height; i++) {
-    //   for (let j = 0; j < width; j++) {
-    //     outerMask.setPixelXY(j, i, (i + j) % 2 === 0 ? [0, 0, 0, 255] : [0, 0, 0, 0])
-    //   }
-    // }
-    // let innerMask = new Image(width, height);
-    // for (let i = 0; i < height; i++) {
-    //   for (let j = 0; j < width; j++) {
-    //     innerMask.setPixelXY(j, i, (i + j) % 2 === 0 ? [0, 0, 0, 0] : [255, 255, 255, 255])
-    //   }
-    // }
     const result = new Image(width, height);
     outer = outer.grey().invert();
     inner = inner.grey();
@@ -126,6 +116,10 @@ const App = () => {
 
   const handleDownload = () => {
     document.getElementById('resultImageDownload').click();
+  }
+
+  const handleBgColorChange = (event) => {
+    setBgColor(event.target.checked);
   }
 
   return (
@@ -173,7 +167,11 @@ const App = () => {
               <div className="card-header">③ 预览</div>
               <div className="card-body">
                 <div className='image-container'>
-                  <img src={resultImage} alt="inner" className='image-preview' />
+                  <img src={resultImage} alt="inner" className={`image-preview ${bgColor ? 'bg-black' : 'bg-white'}`} />
+                </div>
+                <div className="form-check form-switch float-start">
+                  <input className="form-check-input" type="checkbox" role="switch" id="bg-color" value={bgColor} onChange={handleBgColorChange} />
+                  <label className="form-check-label" for="bg-color">白 / 黑</label>
                 </div>
                 <button type="button" className="btn btn-primary float-end" onClick={handleDownload}>
                   <i className="bi bi-cloud-download"></i> 下载结果

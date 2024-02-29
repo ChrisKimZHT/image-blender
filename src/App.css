@@ -18,3 +18,11 @@
   width: 100%;
   height: auto;
 }
+
+.bg-white {
+  background-color: #fff;
+}
+
+.bg-black {
+  background-color: #000;
+}
