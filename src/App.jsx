@@ -142,7 +142,7 @@ const App = () => {
           <div className="navbar-brand">
             <span>图片混合器</span>
           </div>
-          <span className="fw-light float-end"><a href="https://github.com/ChrisKimZHT/image-blender">Image Blender</a> v1.0 by ChrisKim</span>
+          <span className="fw-light float-end"><a href="https://github.com/ChrisKimZHT/image-blender">Image Blender</a> v1.1.0 by ChrisKim</span>
         </div>
       </nav >
       <div className='main-panel'>
