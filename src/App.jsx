@@ -12,6 +12,10 @@ const App = () => {
   const [innerThumb, setInnerThumb] = useState("./placeholder.svg");
   const [resultThumb, setResultThumb] = useState("./placeholder.svg");
 
+  const [outerStatus, setOuterStatus] = useState(false);
+  const [innerStatus, setInnerStatus] = useState(false);
+  const [resultStatus, setResultStatus] = useState(false);
+
   const [toastTitle, setToastTitle] = useState('');
   const [toastMessage, setToastMessage] = useState('');
 
@@ -44,6 +48,8 @@ const App = () => {
           const grey = original.grey().rgba8();
           setOuterImage(grey);
           setOuterThumb(generateThumbURL(grey));
+          setOuterStatus(true);
+          setResultStatus(false);
         });
     }
     reader.readAsDataURL(file);
@@ -61,6 +67,8 @@ const App = () => {
           const grey = original.grey().rgba8();
           setInnerImage(grey);
           setInnerThumb(generateThumbURL(grey));
+          setInnerStatus(true);
+          setResultStatus(false);
         });
     }
     reader.readAsDataURL(file);
@@ -120,6 +128,7 @@ const App = () => {
     }
     setResultImage(result);
     setResultThumb(generateThumbURL(result));
+    setResultStatus(true);
   }
 
   const downloadBlob = (blob) => {
@@ -184,10 +193,10 @@ const App = () => {
                   <input className="form-check-input" type="checkbox" role="switch" id="bg-color" value={bgColor} onChange={(e) => setBgColor(e.target.checked)} />
                   <label className="form-check-label" for="bg-color">白底 / 黑底</label>
                 </div>
-                <button type="button" className="btn btn-primary float-end" onClick={async () => downloadBlob(await resultImage.toBlob())}>
+                <button type="button" className="btn btn-primary float-end" onClick={async () => downloadBlob(await resultImage.toBlob())} disabled={!resultStatus}>
                   <i className="bi bi-cloud-download"></i> 下载
                 </button>
-                <button type="button" className="btn btn-success float-end me-2" onClick={startProcess}>
+                <button type="button" className="btn btn-success float-end me-2" onClick={startProcess} disabled={outerStatus && innerStatus ? false : true}>
                   <i className="bi bi-play-circle"></i> 生成
                 </button>
               </div>
