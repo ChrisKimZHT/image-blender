@@ -1,12 +1,19 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image } from 'image-js';
 import { Toast } from 'bootstrap';
+import { preprocessor, blender } from './process/blender';
+import { resize2same } from './process/resize2same';
 import './App.css';
 
 const App = () => {
   const [outerImage, setOuterImage] = useState();
   const [innerImage, setInnerImage] = useState();
   const [resultImage, setResultImage] = useState();
+
+  const [blenderMode, setBlenderMode] = useState('chessboard');
+
+  const [outerColorMode, setOuterColorMode] = useState(false);
+  const [innerColorMode, setInnerColorMode] = useState(false);
 
   const [outerThumb, setOuterThumb] = useState("./placeholder.svg");
   const [innerThumb, setInnerThumb] = useState("./placeholder.svg");
@@ -36,6 +43,24 @@ const App = () => {
     return thumb.toDataURL();
   }
 
+  const refreshOuterThumb = (original = outerImage) => {
+    setOuterThumb(generateThumbURL(preprocessor(original, "outer", outerColorMode, blenderMode)));
+  }
+
+  const refreshInnerThumb = (original = innerImage) => {
+    setInnerThumb(generateThumbURL(preprocessor(original, "inner", innerColorMode, blenderMode)));
+  }
+
+  useEffect(() => {
+    if (outerImage) { refreshOuterThumb(outerImage); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [outerImage, outerColorMode, blenderMode]);
+
+  useEffect(() => {
+    if (innerImage) { refreshInnerThumb(innerImage); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [innerImage, innerColorMode, blenderMode]);
+
   const handleOuterImageChange = (event) => {
     if (event.target.files.length === 0) {
       return;
@@ -45,9 +70,7 @@ const App = () => {
     reader.onloadend = () => {
       Image.load(reader.result)
         .then((original) => {
-          const grey = original.grey().rgba8();
-          setOuterImage(grey);
-          setOuterThumb(generateThumbURL(grey));
+          setOuterImage(original);
           setOuterStatus(true);
           setResultStatus(false);
         });
@@ -64,9 +87,7 @@ const App = () => {
     reader.onloadend = () => {
       Image.load(reader.result)
         .then((original) => {
-          const grey = original.grey().rgba8();
-          setInnerImage(grey);
-          setInnerThumb(generateThumbURL(grey));
+          setInnerImage(original);
           setInnerStatus(true);
           setResultStatus(false);
         });
@@ -74,58 +95,29 @@ const App = () => {
     reader.readAsDataURL(file);
   }
 
-  const startProcess = async () => {
-    let outer = outerImage.clone();
-    let inner = innerImage.clone();
+  const startProcess = () => {
+    let [outer, inner, resizeType] = resize2same(outerImage, innerImage);
 
-    let width = outer.width, height = outer.height;
-
-    // 图片尺寸预处理
-    if (outer.width * inner.height !== inner.width * outer.height) {
+    if (resizeType === 1) {
       const toast = new Toast(document.getElementById('liveToast'));
       setToastTitle('警告：图片比例不一致');
       setToastMessage('程序将会填充图片四周以适应比例');
       toast.show();
-      width = Math.max(outer.width, inner.width);
-      outer = outer.resize({ width });
-      inner = inner.resize({ width });
-      if (inner.height < outer.height) {
-        height = outer.height;
-        let result = new Image(width, height, Array.from({ length: width * height * 4 }, () => 255));
-        let offsetY = Math.round((height - inner.height) / 2);
-        inner = result.insert(inner.rgba8(), { x: 0, y: offsetY });
-      } else {
-        height = inner.height;
-        let result = new Image(width, height, Array.from({ length: width * height * 4 }, () => 255));
-        let offsetY = Math.round((height - outer.height) / 2);
-        outer = result.insert(outer.rgba8(), { x: 0, y: offsetY });
-      }
-    } else if (outer.width !== inner.width || outer.height !== inner.height) {
+    } else if (resizeType === 2) {
       const toast = new Toast(document.getElementById('liveToast'));
       setToastTitle('警告：图片尺寸不一致');
       setToastMessage('程序将会将小图像缩放至大图像尺寸');
       toast.show();
-      width = Math.max(outer.width, inner.width);
-      height = Math.max(outer.height, inner.height);
-      outer = outer.resize({ width, height });
-      inner = inner.resize({ width, height });
     }
+
+    outer = preprocessor(outer, "outer", outerColorMode, blenderMode);
+    inner = preprocessor(inner, "inner", innerColorMode, blenderMode);
+
     setOuterThumb(generateThumbURL(outer));
     setInnerThumb(generateThumbURL(inner));
 
-    // 正式处理
-    const result = new Image(width, height);
-    outer = outer.grey();
-    inner = inner.grey();
-    for (let i = 0; i < height; i++) {
-      for (let j = 0; j < width; j++) {
-        if ((i + j) % 2 === 0) {
-          result.setPixelXY(j, i, [0, 0, 0, 255 - outer.getPixelXY(j, i)[0]]); // outer
-        } else {
-          result.setPixelXY(j, i, [255, 255, 255, inner.getPixelXY(j, i)[0]]); // inner
-        }
-      }
-    }
+    const result = blender(outer, inner, outerColorMode, innerColorMode, blenderMode);
+
     setResultImage(result);
     setResultThumb(generateThumbURL(result));
     setResultStatus(true);
@@ -154,12 +146,29 @@ const App = () => {
       </nav >
       <div className='main-panel'>
         <div className="row">
+          <div className="col">
+            <div className="card text-bg-light mb-4">
+              <div className="card-header">① 混合方式</div>
+              <div className="card-body">
+                <select class="form-select" value={1} onChange={(e) => { setBlenderMode(e.target.value) }}>
+                  <option value="chessboard" selected>棋盘混合</option>
+                  <option value="direct" disabled>直接混合</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="row">
           <div className="col-sm-6 col-xl-4 mb-4">
             <div className="card text-bg-light">
-              <div className="card-header">① 选择表图像（白底时可见）</div>
+              <div className="card-header">② 选择表图像（白底时可见）</div>
               <div className="card-body">
                 <div className='image-container'>
                   <img src={outerThumb} alt="outer" className='image-preview' />
+                </div>
+                <div className="form-check form-switch float-start">
+                  <input className="form-check-input" type="checkbox" role="switch" id="outer-color-mode" value={outerColorMode} onChange={(e) => setOuterColorMode(e.target.checked)} />
+                  <label className="form-check-label" htmlFor="outer-color-mode">彩色模式</label>
                 </div>
                 <button type="button" className="btn btn-primary float-end" onClick={handleOuterImageUpload}>
                   <i className="bi bi-cloud-upload"></i> 选择
@@ -170,10 +179,14 @@ const App = () => {
           </div>
           <div className="col-sm-6 col-xl-4 mb-4">
             <div className="card text-bg-light">
-              <div className="card-header">② 选择里图像（黑底时可见）</div>
+              <div className="card-header">③ 选择里图像（黑底时可见）</div>
               <div className="card-body">
                 <div className='image-container'>
                   <img src={innerThumb} alt="inner" className='image-preview' />
+                </div>
+                <div className="form-check form-switch float-start">
+                  <input className="form-check-input" type="checkbox" role="switch" id="inner-color-mode" value={innerColorMode} onChange={(e) => setInnerColorMode(e.target.checked)} />
+                  <label className="form-check-label" htmlFor="inner-color-mode">彩色模式</label>
                 </div>
                 <button type="button" className="btn btn-primary float-end" onClick={handleInnerImageUpload}>
                   <i className="bi bi-cloud-upload"></i> 选择
@@ -184,7 +197,7 @@ const App = () => {
           </div>
           <div className="col-12 col-xl-4 mb-4">
             <div className="card text-bg-light">
-              <div className="card-header">③ 预览（预览有压缩，仅供参考）</div>
+              <div className="card-header">④ 预览（预览有压缩，仅供参考）</div>
               <div className="card-body">
                 <div className='image-container'>
                   <img src={resultThumb} alt="inner" className={`image-preview ${bgColor ? 'bg-black' : 'bg-white'}`} />
