@@ -146,7 +146,7 @@ const App = () => {
           </div>
         </div>
         <div className="row">
-          <div className="col-sm-6 col-xl-4 mb-4">
+          <div className="col-md-6 col-xl-4 mb-4">
             <div className="card text-bg-light">
               <div className="card-header">② 选择表图像（白底时可见）</div>
               <div className="card-body">
@@ -165,7 +165,7 @@ const App = () => {
               </div>
             </div>
           </div>
-          <div className="col-sm-6 col-xl-4 mb-4">
+          <div className="col-md-6 col-xl-4 mb-4">
             <div className="card text-bg-light">
               <div className="card-header">③ 选择里图像（黑底时可见）</div>
               <div className="card-body">
@@ -184,7 +184,7 @@ const App = () => {
               </div>
             </div>
           </div>
-          <div className="col-12 col-xl-4 mb-4">
+          <div className="col-md-6 col-xl-4 mb-4">
             <div className="card text-bg-light">
               <div className="card-header">④ 预览（成品需导出）</div>
               <div className="card-body">
