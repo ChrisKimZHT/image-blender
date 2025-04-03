@@ -61,6 +61,11 @@ const App = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [innerImage, innerColorMode, blenderMode]);
 
+  useEffect(() => {
+    setOuterColorMode(false);
+    setInnerColorMode(false);
+  }, [blenderMode]);
+
   const handleOuterImageChange = (event) => {
     if (event.target.files.length === 0) {
       return;
@@ -150,7 +155,7 @@ const App = () => {
             <div className="card text-bg-light mb-4">
               <div className="card-header">① 混合方式</div>
               <div className="card-body">
-                <select class="form-select" defaultValue={"direct"} onChange={(e) => { setBlenderMode(e.target.value) }}>
+                <select class="form-select" defaultValue={"direct"} value={blenderMode} onChange={(e) => { setBlenderMode(e.target.value) }}>
                   <option value="direct">直接混合</option>
                   <option value="chessboard">棋盘混合</option>
                 </select>
@@ -167,7 +172,8 @@ const App = () => {
                   <img src={outerThumb} alt="outer" className='image-preview' />
                 </div>
                 <div className="form-check form-switch float-start">
-                  <input className="form-check-input" type="checkbox" role="switch" id="outer-color-mode" value={outerColorMode} onChange={(e) => setOuterColorMode(e.target.checked)} />
+                  <input className="form-check-input" type="checkbox" role="switch" id="outer-color-mode"
+                    checked={outerColorMode} onChange={(e) => setOuterColorMode(e.target.checked)} disabled={blenderMode === "chessboard"} />
                   <label className="form-check-label" htmlFor="outer-color-mode">彩色模式</label>
                 </div>
                 <button type="button" className="btn btn-primary float-end" onClick={handleOuterImageUpload}>
@@ -185,7 +191,8 @@ const App = () => {
                   <img src={innerThumb} alt="inner" className='image-preview' />
                 </div>
                 <div className="form-check form-switch float-start">
-                  <input className="form-check-input" type="checkbox" role="switch" id="inner-color-mode" value={innerColorMode} onChange={(e) => setInnerColorMode(e.target.checked)} />
+                  <input className="form-check-input" type="checkbox" role="switch" id="inner-color-mode"
+                    checked={innerColorMode} onChange={(e) => setInnerColorMode(e.target.checked)} disabled={blenderMode === "chessboard"} />
                   <label className="form-check-label" htmlFor="inner-color-mode">彩色模式</label>
                 </div>
                 <button type="button" className="btn btn-primary float-end" onClick={handleInnerImageUpload}>
