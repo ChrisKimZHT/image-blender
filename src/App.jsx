@@ -94,6 +94,10 @@ const App = () => {
     setInnerColorMode(false);
   }, [blenderMode]);
 
+  useEffect(() => {
+    window.ViewImage && window.ViewImage.init('img');
+  }, []);
+
   const handleOuterImageChange = (event) => {
     if (event.target.files.length === 0) {
       return;
