@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Image } from 'image-js';
-import { Toast } from 'bootstrap';
 import { preprocessor, blender } from './process/blender';
 import { resize2same } from './process/resize2same';
 import './App.css';
@@ -8,23 +7,18 @@ import './App.css';
 const App = () => {
   const [outerImage, setOuterImage] = useState();
   const [innerImage, setInnerImage] = useState();
-  const [resultImage, setResultImage] = useState();
 
   const [blenderMode, setBlenderMode] = useState("direct");
 
   const [outerColorMode, setOuterColorMode] = useState(false);
   const [innerColorMode, setInnerColorMode] = useState(false);
 
-  const [outerThumb, setOuterThumb] = useState("./placeholder.svg");
-  const [innerThumb, setInnerThumb] = useState("./placeholder.svg");
-  const [resultThumb, setResultThumb] = useState("./placeholder.svg");
+  const [outerThumb, setOuterThumb] = useState();
+  const [innerThumb, setInnerThumb] = useState();
 
-  const [outerStatus, setOuterStatus] = useState(false);
-  const [innerStatus, setInnerStatus] = useState(false);
-  const [resultStatus, setResultStatus] = useState(false);
-
-  const [toastTitle, setToastTitle] = useState('');
-  const [toastMessage, setToastMessage] = useState('');
+  const [displayOuterThumb, setDisplayOuterThumb] = useState("./placeholder.svg");
+  const [displayInnerThumb, setDisplayInnerThumb] = useState("./placeholder.svg");
+  const [displayResultThumb, setDisplayResultThumb] = useState("./placeholder.svg");
 
   const [bgColor, setBgColor] = useState(false);
 
@@ -38,28 +32,30 @@ const App = () => {
     fileInput.click();
   }
 
-  const generateThumbURL = (image) => {
-    const thumb = image.resize({ width: 1024 });
-    return thumb.toDataURL();
-  }
-
-  const refreshOuterThumb = (original = outerImage) => {
-    setOuterThumb(generateThumbURL(preprocessor(original, "outer", outerColorMode, blenderMode)));
-  }
-
-  const refreshInnerThumb = (original = innerImage) => {
-    setInnerThumb(generateThumbURL(preprocessor(original, "inner", innerColorMode, blenderMode)));
-  }
+  useEffect(() => {
+    if (outerThumb) {
+      const processedThumb = preprocessor(outerThumb, "outer", outerColorMode, blenderMode);
+      setDisplayOuterThumb(processedThumb.toDataURL());
+    }
+  }, [outerThumb, outerColorMode, blenderMode]);
 
   useEffect(() => {
-    if (outerImage) { refreshOuterThumb(outerImage); }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [outerImage, outerColorMode, blenderMode]);
+    if (innerThumb) {
+      const processedThumb = preprocessor(innerThumb, "inner", innerColorMode, blenderMode);
+      setDisplayInnerThumb(processedThumb.toDataURL());
+    }
+  }, [innerThumb, innerColorMode, blenderMode]);
 
   useEffect(() => {
-    if (innerImage) { refreshInnerThumb(innerImage); }
+    if (outerThumb && innerThumb) {
+      const [result, outer, inner] = process(outerThumb, innerThumb);
+
+      setDisplayOuterThumb(outer.toDataURL());
+      setDisplayInnerThumb(inner.toDataURL());
+      setDisplayResultThumb(result.toDataURL());
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [innerImage, innerColorMode, blenderMode]);
+  }, [outerThumb, innerThumb, outerColorMode, innerColorMode, blenderMode]);
 
   useEffect(() => {
     setOuterColorMode(false);
@@ -76,8 +72,7 @@ const App = () => {
       Image.load(reader.result)
         .then((original) => {
           setOuterImage(original);
-          setOuterStatus(true);
-          setResultStatus(false);
+          setOuterThumb(original.resize({ width: 512 }));
         });
     }
     reader.readAsDataURL(file);
@@ -93,42 +88,26 @@ const App = () => {
       Image.load(reader.result)
         .then((original) => {
           setInnerImage(original);
-          setInnerStatus(true);
-          setResultStatus(false);
+          setInnerThumb(original.resize({ width: 512 }));
         });
     }
     reader.readAsDataURL(file);
   }
 
-  const startProcess = () => {
-    let [outer, inner, resizeType] = resize2same(outerImage, innerImage);
+  const process = (_outerImage = outerImage, _innerImage = innerImage) => {
+    const [outer, inner] = resize2same(_outerImage, _innerImage);
 
-    if (resizeType === 1) {
-      const toast = new Toast(document.getElementById('liveToast'));
-      setToastTitle('警告：图片比例不一致');
-      setToastMessage('程序将会填充图片四周以适应比例');
-      toast.show();
-    } else if (resizeType === 2) {
-      const toast = new Toast(document.getElementById('liveToast'));
-      setToastTitle('警告：图片尺寸不一致');
-      setToastMessage('程序将会将小图像缩放至大图像尺寸');
-      toast.show();
-    }
+    const processedOuter = preprocessor(outer, "outer", outerColorMode, blenderMode);
+    const processedInner = preprocessor(inner, "inner", innerColorMode, blenderMode);
 
-    outer = preprocessor(outer, "outer", outerColorMode, blenderMode);
-    inner = preprocessor(inner, "inner", innerColorMode, blenderMode);
+    const result = blender(processedOuter, processedInner, blenderMode);
 
-    setOuterThumb(generateThumbURL(outer));
-    setInnerThumb(generateThumbURL(inner));
-
-    const result = blender(outer, inner, blenderMode);
-
-    setResultImage(result);
-    setResultThumb(generateThumbURL(result));
-    setResultStatus(true);
+    return [result, processedOuter, processedInner];
   }
 
-  const downloadBlob = (blob) => {
+  const handleExport = async () => {
+    const [result] = process(outerImage, innerImage);
+    const blob = await result.toBlob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -153,12 +132,15 @@ const App = () => {
         <div className="row">
           <div className="col">
             <div className="card text-bg-light mb-4">
-              <div className="card-header">① 混合方式</div>
+              <div className="card-header">① 参数选择</div>
               <div className="card-body">
-                <select class="form-select" defaultValue={"direct"} value={blenderMode} onChange={(e) => { setBlenderMode(e.target.value) }}>
-                  <option value="direct">直接混合</option>
-                  <option value="chessboard">棋盘混合</option>
-                </select>
+                <div class="input-group">
+                  <span class="input-group-text">混合方式</span>
+                  <select class="form-select" defaultValue={"direct"} value={blenderMode} onChange={(e) => { setBlenderMode(e.target.value) }}>
+                    <option value="direct">直接混合</option>
+                    <option value="chessboard">棋盘混合</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -169,7 +151,7 @@ const App = () => {
               <div className="card-header">② 选择表图像（白底时可见）</div>
               <div className="card-body">
                 <div className='image-container'>
-                  <img src={outerThumb} alt="outer" className='image-preview' />
+                  <img src={displayOuterThumb} alt="outer" className='image-preview' />
                 </div>
                 <div className="form-check form-switch float-start">
                   <input className="form-check-input" type="checkbox" role="switch" id="outer-color-mode"
@@ -188,7 +170,7 @@ const App = () => {
               <div className="card-header">③ 选择里图像（黑底时可见）</div>
               <div className="card-body">
                 <div className='image-container'>
-                  <img src={innerThumb} alt="inner" className='image-preview' />
+                  <img src={displayInnerThumb} alt="inner" className='image-preview' />
                 </div>
                 <div className="form-check form-switch float-start">
                   <input className="form-check-input" type="checkbox" role="switch" id="inner-color-mode"
@@ -204,34 +186,20 @@ const App = () => {
           </div>
           <div className="col-12 col-xl-4 mb-4">
             <div className="card text-bg-light">
-              <div className="card-header">④ 预览（预览有压缩，仅供参考）</div>
+              <div className="card-header">④ 预览（成品需导出）</div>
               <div className="card-body">
                 <div className='image-container'>
-                  <img src={resultThumb} alt="inner" className={`image-preview ${bgColor ? 'bg-black' : 'bg-white'}`} />
+                  <img src={displayResultThumb} alt="inner" className={`image-preview ${bgColor ? 'bg-black' : 'bg-white'}`} />
                 </div>
                 <div className="form-check form-switch float-start">
                   <input className="form-check-input" type="checkbox" role="switch" id="bg-color" value={bgColor} onChange={(e) => setBgColor(e.target.checked)} />
                   <label className="form-check-label" htmlFor="bg-color">白底 / 黑底</label>
                 </div>
-                <button type="button" className="btn btn-primary float-end" onClick={async () => downloadBlob(await resultImage.toBlob())} disabled={!resultStatus}>
-                  <i className="bi bi-cloud-download"></i> 下载
-                </button>
-                <button type="button" className="btn btn-success float-end me-2" onClick={startProcess} disabled={outerStatus && innerStatus ? false : true}>
-                  <i className="bi bi-play-circle"></i> 生成
+                <button type="button" className="btn btn-success float-end" onClick={handleExport} disabled={!(outerImage && innerImage)}>
+                  <i className="bi bi-cloud-download"></i> 导出
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-      <div className="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="liveToast" className="toast" role="alert" aria-live="assertive" aria-atomic="true">
-          <div className="toast-header">
-            <strong className="me-auto">{toastTitle}</strong>
-            <button type="button" className="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-          </div>
-          <div className="toast-body">
-            {toastMessage}
           </div>
         </div>
       </div>
