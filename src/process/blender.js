@@ -9,19 +9,20 @@ export const preprocessor = (image, imageType, enableColor = false, mode = "ches
 }
 
 const chessboardPreprocessor = (image) => {
-  return image.clone().grey().rgba8();
+  return image.grey().rgba8();
 }
 
 const directPreprocessor = (image, imageType, enableColor) => {
-  image = image.clone();
   if (!enableColor) {
     image = image.grey().rgba8();
+  } else {
+    image = image.clone().rgba8();
   }
+  image.divide(2);
   if (imageType === "outer") {
-    return image.divide(2).add(128);
-  } else if (imageType === "inner") {
-    return image.divide(2);
+    image.add(128);
   }
+  return image;
 }
 
 export const blender = (outerImage, innerImage, mode = "chessboard") => {
