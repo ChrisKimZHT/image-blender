@@ -10,7 +10,7 @@ const App = () => {
   const [innerImage, setInnerImage] = useState();
   const [resultImage, setResultImage] = useState();
 
-  const [blenderMode, setBlenderMode] = useState('chessboard');
+  const [blenderMode, setBlenderMode] = useState("direct");
 
   const [outerColorMode, setOuterColorMode] = useState(false);
   const [innerColorMode, setInnerColorMode] = useState(false);
@@ -116,7 +116,7 @@ const App = () => {
     setOuterThumb(generateThumbURL(outer));
     setInnerThumb(generateThumbURL(inner));
 
-    const result = blender(outer, inner, outerColorMode, innerColorMode, blenderMode);
+    const result = blender(outer, inner, blenderMode);
 
     setResultImage(result);
     setResultThumb(generateThumbURL(result));
@@ -150,9 +150,9 @@ const App = () => {
             <div className="card text-bg-light mb-4">
               <div className="card-header">① 混合方式</div>
               <div className="card-body">
-                <select class="form-select" value={1} onChange={(e) => { setBlenderMode(e.target.value) }}>
-                  <option value="chessboard" selected>棋盘混合</option>
-                  <option value="direct" disabled>直接混合</option>
+                <select class="form-select" defaultValue={"direct"} onChange={(e) => { setBlenderMode(e.target.value) }}>
+                  <option value="direct">直接混合</option>
+                  <option value="chessboard">棋盘混合</option>
                 </select>
               </div>
             </div>
