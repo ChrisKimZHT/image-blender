@@ -191,7 +191,7 @@ const App = () => {
                 </div>
                 <div className="form-check form-switch float-start">
                   <input className="form-check-input" type="checkbox" role="switch" id="bg-color" value={bgColor} onChange={(e) => setBgColor(e.target.checked)} />
-                  <label className="form-check-label" for="bg-color">白底 / 黑底</label>
+                  <label className="form-check-label" htmlFor="bg-color">白底 / 黑底</label>
                 </div>
                 <button type="button" className="btn btn-primary float-end" onClick={async () => downloadBlob(await resultImage.toBlob())} disabled={!resultStatus}>
                   <i className="bi bi-cloud-download"></i> 下载
