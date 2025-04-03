@@ -38,35 +38,53 @@ const App = () => {
   }
 
   useEffect(() => {
-    if (outerThumb) {
-      const processedThumb = preprocessor(outerThumb, "outer", blenderMode, {
-        enableColor: outerColorMode,
-        clipRange: [directOuterMin, directOuterMax],
-        threshold: directThreshold,
-      });
-      setDisplayOuterThumb(processedThumb.toDataURL());
-    }
+    const handler = setTimeout(() => {
+      if (outerThumb) {
+        const processedThumb = preprocessor(outerThumb, "outer", blenderMode, {
+          enableColor: outerColorMode,
+          clipRange: [directOuterMin, directOuterMax],
+          threshold: directThreshold,
+        });
+        setDisplayOuterThumb(processedThumb.toDataURL());
+      }
+    }, 100);
+
+    return () => {
+      clearTimeout(handler);
+    };
   }, [outerThumb, outerColorMode, blenderMode, directOuterMin, directOuterMax, directThreshold]);
 
   useEffect(() => {
-    if (innerThumb) {
-      const processedThumb = preprocessor(innerThumb, "inner", blenderMode, {
-        enableColor: innerColorMode,
-        clipRange: [directInnerMin, directInnerMax],
-        threshold: directThreshold,
-      });
-      setDisplayInnerThumb(processedThumb.toDataURL());
-    }
+    const handler = setTimeout(() => {
+      if (innerThumb) {
+        const processedThumb = preprocessor(innerThumb, "inner", blenderMode, {
+          enableColor: innerColorMode,
+          clipRange: [directInnerMin, directInnerMax],
+          threshold: directThreshold,
+        });
+        setDisplayInnerThumb(processedThumb.toDataURL());
+      }
+    }, 100);
+
+    return () => {
+      clearTimeout(handler);
+    };
   }, [innerThumb, innerColorMode, blenderMode, directInnerMin, directInnerMax, directThreshold]);
 
   useEffect(() => {
-    if (outerThumb && innerThumb) {
-      const [result, outer, inner] = process(outerThumb, innerThumb);
+    const handler = setTimeout(() => {
+      if (outerThumb && innerThumb) {
+        const [result, outer, inner] = process(outerThumb, innerThumb);
 
-      setDisplayOuterThumb(outer.toDataURL());
-      setDisplayInnerThumb(inner.toDataURL());
-      setDisplayResultThumb(result.toDataURL());
-    }
+        setDisplayOuterThumb(outer.toDataURL());
+        setDisplayInnerThumb(inner.toDataURL());
+        setDisplayResultThumb(result.toDataURL());
+      }
+    }, 100);
+
+    return () => {
+      clearTimeout(handler);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [outerThumb, innerThumb, outerColorMode, innerColorMode, blenderMode,
     directOuterMin, directOuterMax, directInnerMin, directInnerMax, directThreshold]);
