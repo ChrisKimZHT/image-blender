@@ -1,10 +1,10 @@
 import { Image } from 'image-js';
 
-export const preprocessor = (image, imageType, enableColor = false, mode = "chessboard") => {
+export const preprocessor = (image, imageType, mode = "chessboard", args = {}) => {
   if (mode === "chessboard") {
     return chessboardPreprocessor(image);
   } else if (mode === "direct") {
-    return directPreprocessor(image, imageType, enableColor);
+    return directPreprocessor(image, imageType, args);
   }
 }
 
@@ -12,16 +12,38 @@ const chessboardPreprocessor = (image) => {
   return image.grey().rgba8();
 }
 
-const directPreprocessor = (image, imageType, enableColor) => {
+const directPreprocessor = (image, imageType, args) => {
+  const defaultArgs = {
+    enableColor: false,
+    clipRange: [0, 255],
+    threshold: 0.5,
+  };
+  args = { ...defaultArgs, ...args };
+  const { enableColor, clipRange, threshold } = args;
+
   if (!enableColor) {
     image = image.grey().rgba8();
   } else {
     image = image.clone().rgba8();
   }
-  image.divide(2);
-  if (imageType === "outer") {
-    image.add(128);
+
+  for (let i = 0; i < image.data.length; i++) {
+    if (i % 4 === 3) {
+      continue; // skip alpha channel
+    }
+    let value = image.data[i];
+    value = Math.max(clipRange[0], Math.min(clipRange[1], value));
+    value = (value - clipRange[0]) / (clipRange[1] - clipRange[0]);
+    image.data[i] = value * 255;
   }
+
+  if (imageType === "outer") {
+    image.multiply(threshold);
+    image.add(255 * (1 - threshold));
+  } else if (imageType === "inner") {
+    image.multiply(1 - threshold);
+  }
+
   return image;
 }
 

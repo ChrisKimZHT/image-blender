@@ -9,6 +9,11 @@ const App = () => {
   const [innerImage, setInnerImage] = useState();
 
   const [blenderMode, setBlenderMode] = useState("direct");
+  const [directOuterMin, setDirectOuterMin] = useState(0);
+  const [directOuterMax, setDirectOuterMax] = useState(255);
+  const [directInnerMin, setDirectInnerMin] = useState(0);
+  const [directInnerMax, setDirectInnerMax] = useState(255);
+  const [directThreshold, setDirectThreshold] = useState(0.5);
 
   const [outerColorMode, setOuterColorMode] = useState(false);
   const [innerColorMode, setInnerColorMode] = useState(false);
@@ -34,17 +39,25 @@ const App = () => {
 
   useEffect(() => {
     if (outerThumb) {
-      const processedThumb = preprocessor(outerThumb, "outer", outerColorMode, blenderMode);
+      const processedThumb = preprocessor(outerThumb, "outer", blenderMode, {
+        enableColor: outerColorMode,
+        clipRange: [directOuterMin, directOuterMax],
+        threshold: directThreshold,
+      });
       setDisplayOuterThumb(processedThumb.toDataURL());
     }
-  }, [outerThumb, outerColorMode, blenderMode]);
+  }, [outerThumb, outerColorMode, blenderMode, directOuterMin, directOuterMax, directThreshold]);
 
   useEffect(() => {
     if (innerThumb) {
-      const processedThumb = preprocessor(innerThumb, "inner", innerColorMode, blenderMode);
+      const processedThumb = preprocessor(innerThumb, "inner", blenderMode, {
+        enableColor: innerColorMode,
+        clipRange: [directInnerMin, directInnerMax],
+        threshold: directThreshold,
+      });
       setDisplayInnerThumb(processedThumb.toDataURL());
     }
-  }, [innerThumb, innerColorMode, blenderMode]);
+  }, [innerThumb, innerColorMode, blenderMode, directInnerMin, directInnerMax, directThreshold]);
 
   useEffect(() => {
     if (outerThumb && innerThumb) {
@@ -55,7 +68,8 @@ const App = () => {
       setDisplayResultThumb(result.toDataURL());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [outerThumb, innerThumb, outerColorMode, innerColorMode, blenderMode]);
+  }, [outerThumb, innerThumb, outerColorMode, innerColorMode, blenderMode,
+    directOuterMin, directOuterMax, directInnerMin, directInnerMax, directThreshold]);
 
   useEffect(() => {
     setOuterColorMode(false);
@@ -97,8 +111,16 @@ const App = () => {
   const process = (_outerImage = outerImage, _innerImage = innerImage) => {
     const [outer, inner] = resize2same(_outerImage, _innerImage);
 
-    const processedOuter = preprocessor(outer, "outer", outerColorMode, blenderMode);
-    const processedInner = preprocessor(inner, "inner", innerColorMode, blenderMode);
+    const processedOuter = preprocessor(outer, "outer", blenderMode, {
+      enableColor: outerColorMode,
+      clipRange: [directOuterMin, directOuterMax],
+      threshold: directThreshold,
+    });
+    const processedInner = preprocessor(inner, "inner", blenderMode, {
+      enableColor: innerColorMode,
+      clipRange: [directInnerMin, directInnerMax],
+      threshold: directThreshold,
+    });
 
     const result = blender(processedOuter, processedInner, blenderMode);
 
@@ -134,13 +156,33 @@ const App = () => {
             <div className="card text-bg-light mb-4">
               <div className="card-header">① 参数选择</div>
               <div className="card-body">
-                <div class="input-group">
+                <div class="input-group mb-3">
                   <span class="input-group-text">混合方式</span>
                   <select class="form-select" defaultValue={"direct"} value={blenderMode} onChange={(e) => { setBlenderMode(e.target.value) }}>
                     <option value="direct">直接混合</option>
                     <option value="chessboard">棋盘混合</option>
                   </select>
                 </div>
+                <label class="form-label">表图片色域缩限：[{directOuterMin}, {directOuterMax}]</label>
+                <div className="row">
+                  <div className="col-6">
+                    <input type="range" class="form-range" min={0} max={127} value={directOuterMin} step={1} onChange={(e) => setDirectOuterMin(e.target.value)} disabled={blenderMode !== "direct"}></input>
+                  </div>
+                  <div className="col-6">
+                    <input type="range" class="form-range" min={128} max={255} value={directOuterMax} step={1} onChange={(e) => setDirectOuterMax(e.target.value)} disabled={blenderMode !== "direct"}></input>
+                  </div>
+                </div>
+                <label class="form-label">里图片色域缩限：[{directInnerMin}, {directInnerMax}]</label>
+                <div className="row">
+                  <div className="col-6">
+                    <input type="range" class="form-range" min={0} max={127} value={directInnerMin} step={1} onChange={(e) => setDirectInnerMin(e.target.value)} disabled={blenderMode !== "direct"}></input>
+                  </div>
+                  <div className="col-6">
+                    <input type="range" class="form-range" min={128} max={255} value={directInnerMax} step={1} onChange={(e) => setDirectInnerMax(e.target.value)} disabled={blenderMode !== "direct"}></input>
+                  </div>
+                </div>
+                <label class="form-label">表里色域分配：({parseFloat(directThreshold).toFixed(2)}, {(1 - parseFloat(directThreshold)).toFixed(2)})</label>
+                <input type="range" class="form-range" min={0.01} max={0.99} value={directThreshold} step={0.01} onChange={(e) => setDirectThreshold(e.target.value)} disabled={blenderMode !== "direct"}></input>
               </div>
             </div>
           </div>
