@@ -3,13 +3,25 @@ a {
   text-decoration: solid underline #aaa !important;
 }
 
+a:hover {
+  color: #000 !important;
+  background-color: #ddd !important;
+}
+
 .navbar {
   background-color: #E9ECEF;
 }
 
 .main-panel {
-  margin: 30px;
+  margin-top: 25px;
+  margin-left: 20px;
+  margin-right: 20px;
   min-height: 85vh;
+}
+
+.card:hover {
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease-in-out;
 }
 
 .image-container {
